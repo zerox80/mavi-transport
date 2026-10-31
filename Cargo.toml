@@ -1,0 +1,45 @@
+[package]
+name = "mavi-transport"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.95"
+description = "Certificate pinning and ECH camouflage helpers for rustls-based VPN and tunnel clients, extracted from Mavi VPN"
+license = "MIT"
+repository = "https://github.com/zerox80/mavi-transport"
+readme = "README.md"
+keywords = ["rustls", "ech", "certificate-pinning", "vpn", "quic"]
+categories = ["network-programming", "cryptography"]
+
+[dependencies]
+rustls = { version = "0.23.45", default-features = false, features = ["std"] }
+sha2 = "0.11"
+constant_time_eq = "0.6"
+thiserror = "2"
+
+[features]
+default = []
+# Convenience constructors that use the aws-lc-rs crypto provider, including
+# the HPKE suites needed for ECH GREASE.
+aws-lc-rs = ["rustls/aws-lc-rs"]
+# Convenience constructors that use the ring crypto provider. ring has no HPKE
+# support in rustls 0.23, so only the cover SNI is available, not ECH GREASE.
+ring = ["rustls/ring"]
+# Allows `PinnedClientConfig::allow_tls12` for TLS-over-TCP transports.
+tls12 = ["rustls/tls12"]
+
+[dev-dependencies]
+rustls = { version = "0.23.45", default-features = false, features = ["std", "aws-lc-rs", "ring", "tls12"] }
+rcgen = { version = "0.14", default-features = false, features = ["aws_lc_rs", "pem"] }
+proptest = "1"
+
+[package.metadata.docs.rs]
+all-features = true
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
