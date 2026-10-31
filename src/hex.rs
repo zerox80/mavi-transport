@@ -7,13 +7,13 @@ use std::fmt::Write;
 pub(crate) fn decode(s: &str) -> Option<Vec<u8>> {
     // Decode nibble by nibble instead of `u8::from_str_radix`, which accepts a
     // leading `+` and would turn "+f" into 0x0f.
-    let bytes = s.as_bytes();
-    if !bytes.len().is_multiple_of(2) {
+    let (pairs, odd) = s.as_bytes().as_chunks::<2>();
+    if !odd.is_empty() {
         return None;
     }
-    bytes
-        .chunks_exact(2)
-        .map(|pair| Some((nibble(pair[0])? << 4) | nibble(pair[1])?))
+    pairs
+        .iter()
+        .map(|&[hi, lo]| Some((nibble(hi)? << 4) | nibble(lo)?))
         .collect()
 }
 

@@ -104,15 +104,15 @@ fn contents(body: &[u8]) -> Result<Option<EchConfig>, EchError> {
     if public_key.is_empty() {
         return Err(EchError::Malformed("empty HPKE public key"));
     }
-    let suites = r.vec_u16()?;
-    if suites.is_empty() || !suites.len().is_multiple_of(4) {
+    let (suites, partial) = r.vec_u16()?.as_chunks::<4>();
+    if suites.is_empty() || !partial.is_empty() {
         return Err(EchError::Malformed("bad HPKE cipher suite list length"));
     }
     let cipher_suites = suites
-        .chunks_exact(4)
-        .map(|s| HpkeSymmetricSuite {
-            kdf_id: u16::from_be_bytes([s[0], s[1]]),
-            aead_id: u16::from_be_bytes([s[2], s[3]]),
+        .iter()
+        .map(|&[k0, k1, a0, a1]| HpkeSymmetricSuite {
+            kdf_id: u16::from_be_bytes([k0, k1]),
+            aead_id: u16::from_be_bytes([a0, a1]),
         })
         .collect();
     let maximum_name_length = r.u8()?;
